@@ -27,4 +27,11 @@ class RecentRecipesModel: ObservableObject {
             deleteRecentRecipeFromDisk()
         }
     }
+    
+    func deleteParticular(recipe: RecipeModel) {
+        if let index = self.recipes.firstIndex(where: {$0.recipe == recipe.recipe}) {
+            deleteParticularRecentRecipeFromDisk(recipe)
+            self.recipes.remove(at: index)
+        }
+    }
 }

@@ -141,7 +141,6 @@ func loadRecentRecipesFromDisk() -> [RecipeModel] {
                     }
                 }
         print("Recent recipes loaded succesfully!")
-        
         loadedRecipes = data.reversed()
         
     } catch {
