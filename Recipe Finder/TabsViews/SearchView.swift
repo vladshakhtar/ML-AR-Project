@@ -19,9 +19,14 @@ struct SearchView: View {
     @State private var isLoading = false
     @StateObject var recipesModel = RecipesModel()
     @State private var recipeModels: [RecipeModel] = []
+    @State private var selectedImage: Image?
+    @State private var isShowingPicker = false
     @FocusState private var isInputActive: Bool
     @EnvironmentObject var favouriteRecipesModel: FavouriteRecipesModel
     @EnvironmentObject var recentRecipesModel: RecentRecipesModel
+    
+    let foodModel = SeeFood()
+    
 
     
     func performSearch() {
@@ -34,6 +39,35 @@ struct SearchView: View {
             }
             self.isNavigationLinkActive = true
             self.isLoading = false
+        }
+    }
+    
+    private func performFoodClassification() {
+        
+        guard let foodToClassify = selectedImage else {
+            return
+        }
+        
+        let img : UIImage = foodToClassify.asUIImage()
+        guard let resizedImage = img.resizeTo(size: CGSize(width: 299, height: 299)),
+              let buffer = resizedImage.toBuffer() else {
+            return
+        }
+        
+        let output = try? foodModel.prediction(image: buffer)
+        
+        if let output = output {
+            let outputLabel = output.classLabel.replacingOccurrences(of: "_", with: " ")
+            isLoading = true
+            print("Searching for predicted recipe of : \(outputLabel)")
+            recipesModel.loadRecipes(query: outputLabel){
+                self.recipeModels = self.recipesModel.recipes.map { recipe in
+                    let isLiked = favouriteRecipesModel.recipes.contains(where: { $0.id == recipe.id })
+                    return RecipeModel(recipe: recipe, isLiked: isLiked)
+                }
+                self.isNavigationLinkActive = true
+                self.isLoading = false
+            }
         }
     }
     
@@ -96,22 +130,34 @@ struct SearchView: View {
                             .padding(.top, 25)
                             .padding(.bottom, 20)
                         
-                        createHorizontalButtonGroup(foodImageLeft: "pizzaImage", titleTextLeft: "Pizza", foodImageRight: "sandwichImage", titleTextRight: "Sandwiches")
+                        Group {
+                            createHorizontalButtonGroup(foodImageLeft: "pizzaImage", titleTextLeft: "Pizza", foodImageRight: "sandwichImage", titleTextRight: "Sandwiches")
+                            
+                            createHorizontalButtonGroup(foodImageLeft: "soupImage", titleTextLeft: "Soups", foodImageRight: "pastaImage", titleTextRight: "Pasta")
+                            
+                            createHorizontalButtonGroup(foodImageLeft: "asianImage", titleTextLeft: "Asian", foodImageRight: "seafoodImage", titleTextRight: "Seafood")
+                            
+                            createHorizontalButtonGroup(foodImageLeft: "saladImage", titleTextLeft: "Salad", foodImageRight: "dessertsImage", titleTextRight: "Desserts")
+                            
+                            createHorizontalButtonGroup(foodImageLeft: "vegetarianImage", titleTextLeft: "Vegetarian", foodImageRight: "drinksImage", titleTextRight: "Drinks")
+                            
+                            createHorizontalButtonGroup(foodImageLeft: "alcoholcocktailsImage", titleTextLeft: "Cocktails", foodImageRight: "breakfastImage", titleTextRight: "Breakfast")
+                        }
                         
-                        createHorizontalButtonGroup(foodImageLeft: "soupImage", titleTextLeft: "Soups", foodImageRight: "pastaImage", titleTextRight: "Pasta")
-                        
-                        createHorizontalButtonGroup(foodImageLeft: "asianImage", titleTextLeft: "Asian", foodImageRight: "seafoodImage", titleTextRight: "Seafood")
-                        
-                        createHorizontalButtonGroup(foodImageLeft: "saladImage", titleTextLeft: "Salad", foodImageRight: "dessertsImage", titleTextRight: "Desserts")
-                        
-                        createHorizontalButtonGroup(foodImageLeft: "vegetarianImage", titleTextLeft: "Vegetarian", foodImageRight: "drinksImage", titleTextRight: "Drinks")
-                        
-                        createHorizontalButtonGroup(foodImageLeft: "alcoholcocktailsImage", titleTextLeft: "Cocktails", foodImageRight: "breakfastImage", titleTextRight: "Breakfast")
-                        
-                        
-                        
+                        Button(action: { self.isShowingPicker = true }) {
+                            Text("Search recipe from an image")
+                        }
+
                         Spacer()
                     }
+                    .sheet(isPresented: self.$isShowingPicker) {
+                        MyPhPickerController(selectedImage: self.$selectedImage)
+                    }
+                    .onChange(of: selectedImage, perform: { newImage in
+                        if newImage != nil {
+                            performFoodClassification()
+                        }
+                    })
                     
                 }
                 
@@ -192,8 +238,3 @@ extension Color {
     static let buttonTextColor = Color(red: 35/255, green: 38/255, blue: 43/255)
 }
 
-extension View {
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
