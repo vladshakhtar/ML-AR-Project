@@ -95,8 +95,8 @@ struct RecentView: View {
         switch sortBy {
             case .addedtime:
                 sortedRecipes = sortOrder == .ascending
-                ? recentRecipesModel.recipes
-                : recentRecipesModel.recipes.reversed()
+                ? recentRecipesModel.recipes.reversed()
+                : recentRecipesModel.recipes
             case .name:
                 sortedRecipes = sortOrder == .ascending
                 ? recentRecipesModel.recipes.sorted { $0.recipe.label < $1.recipe.label }

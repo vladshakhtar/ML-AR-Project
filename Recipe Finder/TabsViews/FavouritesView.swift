@@ -87,8 +87,8 @@ struct FavouritesView: View {
         switch sortBy {
             case .addedtime:
                 sortedRecipes = sortOrder == .ascending
-                ? favouriteRecipesModel.recipes
-                : favouriteRecipesModel.recipes.reversed()
+                ? favouriteRecipesModel.recipes.reversed()
+                : favouriteRecipesModel.recipes
             case .name:
                 sortedRecipes = sortOrder == .ascending
                 ? favouriteRecipesModel.recipes.sorted { $0.recipe.label < $1.recipe.label }
