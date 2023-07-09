@@ -19,8 +19,10 @@ struct SearchView: View {
     @State private var isLoading = false
     @StateObject var recipesModel = RecipesModel()
     @State private var recipeModels: [RecipeModel] = []
+    @State private var showSheet = false
     @State private var selectedImage: Image?
     @State private var isShowingPicker = false
+    @State private var isShowingCamera = false
     @FocusState private var isInputActive: Bool
     @EnvironmentObject var favouriteRecipesModel: FavouriteRecipesModel
     @EnvironmentObject var recentRecipesModel: RecentRecipesModel
@@ -118,7 +120,6 @@ struct SearchView: View {
                         .background(Color.white)
                         .cornerRadius(15)
                         .padding(.horizontal, 16)
-                        //.accessibilityIdentifier("xmark.circle.fill")
                         
                         Text("Popular")
                             .font(.headline)
@@ -144,7 +145,7 @@ struct SearchView: View {
                             createHorizontalButtonGroup(foodImageLeft: "alcoholcocktailsImage", titleTextLeft: "Cocktails", foodImageRight: "breakfastImage", titleTextRight: "Breakfast")
                         }
                         
-                        Button(action: { self.isShowingPicker = true }) {
+                        Button(action: { self.showSheet.toggle() }) {
                             Text("Search recipe from an image")
                         }
                         .frame(maxWidth: .infinity)
@@ -157,11 +158,28 @@ struct SearchView: View {
 
                         Spacer()
                     }
+                    .actionSheet(isPresented: $showSheet) {
+                        ActionSheet(title: Text("Select photo from"),
+                        buttons: [
+                            .default(Text("Photo Library")) {
+                                self.isShowingPicker = true
+                            },
+                            .default(Text("Camera")) {
+                                self.isShowingCamera = true
+                            },
+                            .cancel()
+                        ])
+                    }
                     .sheet(isPresented: self.$isShowingPicker) {
                         MyPhPickerController(selectedImage: self.$selectedImage)
                     }
+                    .sheet(isPresented: self.$isShowingCamera) {
+                        MyCameraViewController(selectedImage:
+                            self.$selectedImage)
+                    }
                     .onChange(of: selectedImage, perform: { newImage in
                         if newImage != nil {
+                            self.isShowingCamera = false
                             performFoodClassification()
                         }
                     })
