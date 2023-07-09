@@ -147,6 +147,13 @@ struct SearchView: View {
                         Button(action: { self.isShowingPicker = true }) {
                             Text("Search recipe from an image")
                         }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 50)
+                        .background(.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(15)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 25)
 
                         Spacer()
                     }
